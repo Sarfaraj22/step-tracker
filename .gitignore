@@ -1,0 +1,42 @@
+# Built application files
+*.apk
+*.aab
+*.ap_
+
+# Build outputs
+/build
+**/build/
+/captures
+
+# Gradle
+.gradle/
+gradle-wrapper.jar
+
+# IntelliJ/Android Studio
+*.iml
+/.idea/
+.idea/
+
+# Local configuration
+local.properties
+keystore.properties
+
+# Signing
+*.jks
+*.keystore
+
+# Sensitive / secrets
+.env
+.env.*
+google-services.json
+secrets.properties
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Profiling
+*.hprof
