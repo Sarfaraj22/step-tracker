@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,14 +27,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.presentation.components.StepTrackerTextField
 import com.example.steptracker.presentation.viewmodel.ForgotPasswordViewModel
 import com.example.steptracker.ui.theme.BgPrimary
@@ -46,7 +47,7 @@ import com.example.steptracker.ui.theme.TextPrimary
 @Composable
 fun ForgotPasswordScreen(
     modifier: Modifier = Modifier,
-    viewModel: ForgotPasswordViewModel = viewModel(),
+    viewModel: ForgotPasswordViewModel = hiltViewModel(),
     onBackToSignInClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -63,7 +64,6 @@ fun ForgotPasswordScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Text(
                 text = "Reset Password",
                 style = TextStyle(
@@ -92,7 +92,6 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Email field
             StepTrackerTextField(
                 label = "Email Address",
                 value = uiState.email,
@@ -104,9 +103,9 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Send Reset link button
             Button(
                 onClick = viewModel::onSendResetLinkClick,
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BtnPrimary,
@@ -116,20 +115,53 @@ fun ForgotPasswordScreen(
                     .width(280.dp)
                     .height(56.dp)
             ) {
-                Text(
-                    text = "Send Reset link",
-                    style = TextStyle(
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
                         color = BtnTextPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 28.sp
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
                     )
+                } else {
+                    Text(
+                        text = "Send Reset Link",
+                        style = TextStyle(
+                            color = BtnTextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 28.sp
+                        )
+                    )
+                }
+            }
+
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = uiState.errorMessage!!,
+                    style = TextStyle(
+                        color = Color(0xFFFF5252),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (uiState.successMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = uiState.successMessage!!,
+                    style = TextStyle(
+                        color = Color(0xFF4CAF50),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Back to Sign In
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
@@ -154,10 +186,4 @@ fun ForgotPasswordScreen(
             }
         }
     }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
-@Composable
-fun ForgotPasswordScreenPreview() {
-    ForgotPasswordScreen()
 }

@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -22,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -32,10 +35,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.presentation.components.GoogleSignUpButton
 import com.example.steptracker.presentation.components.OrDivider
 import com.example.steptracker.presentation.components.StepTrackerTextField
@@ -50,7 +52,7 @@ import com.example.steptracker.ui.theme.TextPrimary
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = viewModel(),
+    viewModel: LoginViewModel = hiltViewModel(),
     onCreateAccountClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onGoogleSignInClick: () -> Unit = {}
@@ -69,7 +71,6 @@ fun LoginScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Text(
                 text = "Welcome Back",
                 style = TextStyle(
@@ -96,7 +97,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Email field
             StepTrackerTextField(
                 label = "Email Address",
                 value = uiState.email,
@@ -108,7 +108,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Password field
             StepTrackerTextField(
                 label = "Password",
                 value = uiState.password,
@@ -131,11 +130,7 @@ fun LoginScreen(
                                     android.R.drawable.ic_secure
                                 }
                             ),
-                            contentDescription = if (uiState.isPasswordVisible) {
-                                "Hide password"
-                            } else {
-                                "Show password"
-                            },
+                            contentDescription = if (uiState.isPasswordVisible) "Hide password" else "Show password",
                             tint = TextGrey
                         )
                     }
@@ -144,7 +139,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Forgot Password
             Text(
                 text = "Forgot Password?",
                 style = TextStyle(
@@ -161,9 +155,9 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Sign In button
             Button(
                 onClick = viewModel::onLoginClick,
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BtnPrimary,
@@ -173,14 +167,35 @@ fun LoginScreen(
                     .width(280.dp)
                     .height(56.dp)
             ) {
-                Text(
-                    text = "Sign In",
-                    style = TextStyle(
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
                         color = BtnTextPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 28.sp
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp
                     )
+                } else {
+                    Text(
+                        text = "Sign In",
+                        style = TextStyle(
+                            color = BtnTextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 28.sp
+                        )
+                    )
+                }
+            }
+
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = uiState.errorMessage!!,
+                    style = TextStyle(
+                        color = Color(0xFFFF5252),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -190,16 +205,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            GoogleSignUpButton(
-                onClick = {
-                    viewModel.onGoogleSignInClick()
-                    onGoogleSignInClick()
-                }
-            )
+            GoogleSignUpButton(onClick = onGoogleSignInClick)
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Footer
             Text(
                 text = buildAnnotatedString {
                     withStyle(
@@ -226,10 +235,4 @@ fun LoginScreen(
             )
         }
     }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen()
 }
