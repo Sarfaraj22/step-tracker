@@ -33,7 +33,9 @@ abstract class DatabaseModule {
                 context,
                 StepTrackerDatabase::class.java,
                 StepTrackerDatabase.DATABASE_NAME
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
 
         @Provides
         @Singleton

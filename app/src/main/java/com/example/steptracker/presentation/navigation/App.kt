@@ -20,6 +20,7 @@ import com.example.steptracker.presentation.screens.ProfileScreen
 import com.example.steptracker.presentation.screens.RegisterScreen
 import com.example.steptracker.presentation.components.NavTab
 import com.example.steptracker.presentation.viewmodel.ForgotPasswordViewModel
+import com.example.steptracker.presentation.viewmodel.HomeViewModel
 import com.example.steptracker.presentation.viewmodel.LoginViewModel
 import com.example.steptracker.presentation.viewmodel.RegisterViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -83,7 +84,9 @@ fun StepTrackerApp() {
             )
         }
         composable(Screen.Home.route) {
+            val viewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
+                viewModel = viewModel,
                 onActivityClick = { navController.navigate(Screen.Activity.route) },
                 onGoalsClick = { navController.navigate(Screen.Goal.route) },
                 onProfileClick = { navController.navigate(Screen.Profile.route) },

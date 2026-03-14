@@ -1,5 +1,10 @@
 package com.example.steptracker.presentation.screens
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +21,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.NightsStay
+import androidx.compose.material.icons.outlined.Umbrella
+import androidx.compose.material.icons.outlined.WbCloudy
 import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,11 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.R
 import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.GoalProgressBar
@@ -52,16 +67,54 @@ import com.example.steptracker.ui.theme.BtnPrimary
 import com.example.steptracker.ui.theme.SurfaceGreen
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
+import com.google.android.gms.location.LocationServices
 
+@SuppressLint("MissingPermission")
 @Composable
 fun HomeScreen(
     onActivityClick: () -> Unit = {},
     onGoalsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(NavTab.HOME) }
+
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                viewModel.loadWeather(location?.latitude, location?.longitude)
+            }.addOnFailureListener {
+                viewModel.loadWeather(null, null)
+            }
+        } else {
+            viewModel.loadWeather(null, null)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                viewModel.loadWeather(location?.latitude, location?.longitude)
+            }.addOnFailureListener {
+                viewModel.loadWeather(null, null)
+            }
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     Scaffold(
         containerColor = BgPrimary,
@@ -108,6 +161,9 @@ fun HomeScreen(
                     condition = uiState.weatherCondition,
                     message = uiState.weatherMessage,
                     isWalkSuitable = uiState.isWalkSuitable,
+                    isLoading = uiState.weatherIsLoading,
+                    conditionCode = uiState.weatherConditionCode,
+                    isDay = uiState.weatherIsDay,
                 )
             }
 
@@ -121,7 +177,12 @@ fun HomeScreen(
 
             // Date navigator
             item {
-                DateNavigator(date = uiState.date)
+                DateNavigator(
+                    date = uiState.date,
+                    isAtLatestDay = uiState.isAtLatestDay,
+                    onPreviousDay = { viewModel.navigateDate(-1) },
+                    onNextDay = { viewModel.navigateDate(1) },
+                )
             }
 
             // Stat cards row 1: Distance + Calories
@@ -188,12 +249,24 @@ fun HomeScreen(
     }
 }
 
+private fun weatherIcon(conditionCode: Int, isDay: Boolean): ImageVector = when {
+    conditionCode == 1000 -> if (isDay) Icons.Outlined.WbSunny else Icons.Outlined.NightsStay
+    conditionCode in 1003..1009 -> if (isDay) Icons.Outlined.WbCloudy else Icons.Outlined.Cloud
+    conditionCode == 1030 || conditionCode == 1135 || conditionCode == 1147 -> Icons.Outlined.Cloud
+    conditionCode == 1087 || conditionCode >= 1273 -> Icons.Outlined.Bolt
+    conditionCode in 1114..1264 -> Icons.Outlined.AcUnit
+    else -> Icons.Outlined.Umbrella
+}
+
 @Composable
 private fun WeatherForecastCard(
     temp: String,
     condition: String,
     message: String,
     isWalkSuitable: Boolean,
+    isLoading: Boolean,
+    conditionCode: Int,
+    isDay: Boolean,
 ) {
     Surface(
         color = BgSecondary,
@@ -207,64 +280,82 @@ private fun WeatherForecastCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = "Today's Weather",
-                    color = TextPrimary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    lineHeight = 28.sp,
-                )
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = temp,
-                        color = TextPrimary,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 36.sp,
-                    )
-                    Text(
-                        text = "  $condition",
-                        color = TextGrey,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 24.sp,
-                        modifier = Modifier.padding(bottom = 4.dp),
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (isWalkSuitable) SurfaceGreen else TextGrey),
-                    )
-                    Text(
-                        text = message,
-                        color = TextGrey,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 24.sp,
+                    CircularProgressIndicator(
+                        color = BtnPrimary,
+                        modifier = Modifier.size(32.dp),
+                        strokeWidth = 3.dp,
                     )
                 }
+            } else {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "Today's Weather",
+                        color = TextPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 28.sp,
+                    )
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = temp,
+                            color = TextPrimary,
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 36.sp,
+                        )
+                        Text(
+                            text = "  $condition",
+                            color = TextGrey,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 24.sp,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (isWalkSuitable) SurfaceGreen else TextGrey),
+                        )
+                        Text(
+                            text = message,
+                            color = TextGrey,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 24.sp,
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = weatherIcon(conditionCode, isDay),
+                    contentDescription = "Weather icon",
+                    tint = BtnPrimary,
+                    modifier = Modifier.size(48.dp),
+                )
             }
-            Icon(
-                imageVector = Icons.Outlined.WbSunny,
-                contentDescription = "Weather icon",
-                tint = BtnPrimary,
-                modifier = Modifier.size(48.dp),
-            )
         }
     }
 }
 
 @Composable
-private fun DateNavigator(date: String) {
+private fun DateNavigator(
+    date: String,
+    isAtLatestDay: Boolean,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -276,7 +367,7 @@ private fun DateNavigator(date: String) {
             tint = TextGrey,
             modifier = Modifier
                 .size(20.dp)
-                .clickable { /* TODO: navigate date */ },
+                .clickable { onPreviousDay() },
         )
         Text(
             text = date,
@@ -287,10 +378,10 @@ private fun DateNavigator(date: String) {
         Icon(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
             contentDescription = "Next day",
-            tint = TextGrey,
+            tint = if (isAtLatestDay) TextGrey.copy(alpha = 0.3f) else TextGrey,
             modifier = Modifier
                 .size(20.dp)
-                .clickable { /* TODO: navigate date */ },
+                .clickable(enabled = !isAtLatestDay) { onNextDay() },
         )
     }
 }

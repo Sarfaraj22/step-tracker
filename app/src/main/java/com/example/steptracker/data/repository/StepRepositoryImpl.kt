@@ -2,18 +2,24 @@ package com.example.steptracker.data.repository
 
 import com.example.steptracker.data.datasource.StepCounterDataSource
 import com.example.steptracker.data.local.dao.StepDao
+import com.example.steptracker.data.local.datasource.LocalStepDataSource
 import com.example.steptracker.data.local.entity.StepRecordEntity
+import com.example.steptracker.data.remote.datasource.RemoteStepDataSource
 import com.example.steptracker.domain.model.DateUtils
+import com.example.steptracker.domain.model.DailyActivity
 import com.example.steptracker.domain.model.StepRecord
 import com.example.steptracker.domain.repository.StepRepository
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class StepRepositoryImpl @Inject constructor(
     private val stepDao: StepDao,
-    private val stepCounterDataSource: StepCounterDataSource
+    private val stepCounterDataSource: StepCounterDataSource,
+    private val local: LocalStepDataSource,
+    private val remote: RemoteStepDataSource,
 ) : StepRepository {
 
     override fun observeTodayStepCount(): Flow<Int> =
@@ -66,6 +72,22 @@ class StepRepositoryImpl @Inject constructor(
             )
 
         stepDao.upsert(entity)
+    }
+
+    override suspend fun getDailyActivity(date: LocalDate): DailyActivity =
+        if (date == LocalDate.now()) local.getTodayActivity()
+        else remote.getDailyActivity(date)
+
+    override suspend fun getWeeklySteps(endDate: LocalDate): List<Int> {
+        val steps = remote.getWeeklySteps(endDate).toMutableList()
+        val today = LocalDate.now()
+        if (!today.isBefore(endDate.minusDays(6)) && !today.isAfter(endDate)) {
+            val todayIndex = (6 - java.time.temporal.ChronoUnit.DAYS.between(today, endDate)).toInt()
+            if (todayIndex in 0..6) {
+                steps[todayIndex] = local.getTodayActivity().stepCount
+            }
+        }
+        return steps
     }
 
     // --- Mappers ---
