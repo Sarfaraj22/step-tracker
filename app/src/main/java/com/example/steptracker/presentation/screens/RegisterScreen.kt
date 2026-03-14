@@ -15,6 +15,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -101,7 +103,9 @@ fun RegisterScreen(
                 label = "First Name",
                 value = uiState.firstName,
                 onValueChange = viewModel::onFirstNameChange,
-                placeholder = "Enter your first name"
+                placeholder = "Enter your first name",
+                errorMessage = uiState.firstNameError,
+                onFocusLost = viewModel::validateFirstName
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -109,7 +113,9 @@ fun RegisterScreen(
                 label = "Last Name",
                 value = uiState.lastName,
                 onValueChange = viewModel::onLastNameChange,
-                placeholder = "Enter your last name"
+                placeholder = "Enter your last name",
+                errorMessage = uiState.lastNameError,
+                onFocusLost = viewModel::validateLastName
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -118,6 +124,8 @@ fun RegisterScreen(
                 value = uiState.email,
                 onValueChange = viewModel::onEmailChange,
                 placeholder = "Enter your email",
+                errorMessage = uiState.emailError,
+                onFocusLost = viewModel::validateEmail,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -127,6 +135,8 @@ fun RegisterScreen(
                 value = uiState.password,
                 onValueChange = viewModel::onPasswordChange,
                 placeholder = "Create a password",
+                errorMessage = uiState.passwordError,
+                onFocusLost = viewModel::validatePassword,
                 visualTransformation = if (uiState.isPasswordVisible) {
                     VisualTransformation.None
                 } else {
@@ -136,14 +146,41 @@ fun RegisterScreen(
                 trailingIcon = {
                     IconButton(onClick = viewModel::onTogglePasswordVisibility) {
                         Icon(
-                            painter = painterResource(
-                                id = if (uiState.isPasswordVisible) {
-                                    android.R.drawable.ic_menu_view
-                                } else {
-                                    android.R.drawable.ic_secure
-                                }
-                            ),
+                            imageVector = if (uiState.isPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            },
                             contentDescription = if (uiState.isPasswordVisible) "Hide password" else "Show password",
+                            tint = TextGrey
+                        )
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            StepTrackerTextField(
+                label = "Confirm Password",
+                value = uiState.confirmPassword,
+                onValueChange = viewModel::onConfirmPasswordChange,
+                placeholder = "Re-enter your password",
+                errorMessage = uiState.confirmPasswordError,
+                onFocusLost = viewModel::validateConfirmPassword,
+                visualTransformation = if (uiState.isConfirmPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = viewModel::onToggleConfirmPasswordVisibility) {
+                        Icon(
+                            imageVector = if (uiState.isConfirmPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            },
+                            contentDescription = if (uiState.isConfirmPasswordVisible) "Hide password" else "Show password",
                             tint = TextGrey
                         )
                     }

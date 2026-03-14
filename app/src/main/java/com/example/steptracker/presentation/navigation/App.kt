@@ -147,6 +147,11 @@ fun StepTrackerApp() {
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onDeleteAccount = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
             )
         }
     }

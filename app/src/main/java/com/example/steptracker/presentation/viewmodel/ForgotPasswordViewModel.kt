@@ -1,5 +1,6 @@
 package com.example.steptracker.presentation.viewmodel
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.steptracker.domain.use_case.auth.SendPasswordResetEmailUseCase
@@ -13,6 +14,7 @@ import javax.inject.Inject
 
 data class ForgotPasswordUiState(
     val email: String = "",
+    val emailError: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null
@@ -27,15 +29,23 @@ class ForgotPasswordViewModel @Inject constructor(
     val uiState: StateFlow<ForgotPasswordUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.update { it.copy(email = email, errorMessage = null, successMessage = null) }
+        _uiState.update { it.copy(email = email, emailError = null, successMessage = null) }
+    }
+
+    fun validateEmail() {
+        val email = _uiState.value.email
+        val error = when {
+            email.isBlank() -> "This field is required"
+            !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> "Please enter a valid email address"
+            else -> null
+        }
+        _uiState.update { it.copy(emailError = error) }
     }
 
     fun onSendResetLinkClick() {
+        validateEmail()
+        if (_uiState.value.emailError != null) return
         val email = _uiState.value.email.trim()
-        if (email.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Please enter your email address") }
-            return
-        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, successMessage = null) }
             val result = sendPasswordResetEmail(email)

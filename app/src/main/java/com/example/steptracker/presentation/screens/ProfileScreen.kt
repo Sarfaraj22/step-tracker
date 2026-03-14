@@ -30,12 +30,16 @@ import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,14 +71,56 @@ import com.example.steptracker.ui.theme.TextPrimary
 fun ProfileScreen(
     onTabSelected: (NavTab) -> Unit = {},
     onSignOut: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.isSignedOut) {
-        if (uiState.isSignedOut) {
-            onSignOut()
-        }
+        if (uiState.isSignedOut) onSignOut()
+    }
+
+    LaunchedEffect(uiState.isAccountDeleted) {
+        if (uiState.isAccountDeleted) onDeleteAccount()
+    }
+
+    if (uiState.showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDeleteAccountDialog() },
+            containerColor = BgSecondary,
+            title = {
+                Text(
+                    text = "Delete Account",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            },
+            text = {
+                Text(
+                    text = "This action is permanent and cannot be undone. All your data will be erased.",
+                    color = TextGrey,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.deleteAccount() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = SurfacePink),
+                ) {
+                    Text(text = "Delete", fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.dismissDeleteAccountDialog() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = TextGrey),
+                ) {
+                    Text(text = "Cancel")
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -219,6 +266,26 @@ fun ProfileScreen(
                         title = "Privacy policy",
                         subtitle = "How we protect your data",
                         showDivider = false,
+                    )
+                }
+            }
+
+            // Delete Account Section
+            item {
+                DeleteAccountCard(
+                    isDeleting = uiState.isDeletingAccount,
+                    onDeleteAccount = { viewModel.showDeleteAccountDialog() },
+                )
+            }
+
+            uiState.deleteAccountError?.let { error ->
+                item {
+                    Text(
+                        text = error,
+                        color = SurfacePink,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -578,6 +645,50 @@ private fun ProfileSwitch(
             uncheckedBorderColor = Color.Transparent,
         ),
     )
+}
+
+@Composable
+private fun DeleteAccountCard(
+    isDeleting: Boolean,
+    onDeleteAccount: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(BgSecondary)
+            .clickable(enabled = !isDeleting, onClick = onDeleteAccount)
+            .padding(20.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (isDeleting) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = SurfacePink,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteOutline,
+                    contentDescription = "Delete account",
+                    tint = SurfacePink,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = "Delete Account",
+                    color = SurfacePink,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 24.sp,
+                )
+            }
+        }
+    }
 }
 
 @Composable

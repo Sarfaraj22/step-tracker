@@ -11,7 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -30,10 +35,16 @@ fun StepTrackerTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     borderColor: Color = Color.Transparent,
+    errorMessage: String? = null,
+    onFocusLost: () -> Unit = {},
     trailingIcon: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
+    val hasError = errorMessage != null
+    val effectiveBorderColor = if (hasError) Color(0xFFFF5252) else borderColor
+    var hasFocused by remember { mutableStateOf(false) }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -81,7 +92,26 @@ fun StepTrackerTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+                .border(1.dp, effectiveBorderColor, RoundedCornerShape(14.dp))
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        hasFocused = true
+                    } else if (hasFocused) {
+                        onFocusLost()
+                    }
+                }
         )
+        if (hasError) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = errorMessage!!,
+                style = TextStyle(
+                    color = Color(0xFFFF5252),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    lineHeight = 16.sp
+                )
+            )
+        }
     }
 }

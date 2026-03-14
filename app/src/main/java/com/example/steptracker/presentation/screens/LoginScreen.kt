@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -103,6 +105,8 @@ fun LoginScreen(
                 onValueChange = viewModel::onEmailChange,
                 placeholder = "Enter your email",
                 borderColor = BorderPrimary,
+                errorMessage = uiState.emailError,
+                onFocusLost = viewModel::validateEmail,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
@@ -114,6 +118,8 @@ fun LoginScreen(
                 onValueChange = viewModel::onPasswordChange,
                 placeholder = "Enter your password",
                 borderColor = BorderPrimary,
+                errorMessage = uiState.passwordError,
+                onFocusLost = viewModel::validatePassword,
                 visualTransformation = if (uiState.isPasswordVisible) {
                     VisualTransformation.None
                 } else {
@@ -123,13 +129,11 @@ fun LoginScreen(
                 trailingIcon = {
                     IconButton(onClick = viewModel::onTogglePasswordVisibility) {
                         Icon(
-                            painter = painterResource(
-                                id = if (uiState.isPasswordVisible) {
-                                    android.R.drawable.ic_menu_view
-                                } else {
-                                    android.R.drawable.ic_secure
-                                }
-                            ),
+                            imageVector = if (uiState.isPasswordVisible) {
+                                Icons.Filled.Visibility
+                            } else {
+                                Icons.Filled.VisibilityOff
+                            },
                             contentDescription = if (uiState.isPasswordVisible) "Hide password" else "Show password",
                             tint = TextGrey
                         )

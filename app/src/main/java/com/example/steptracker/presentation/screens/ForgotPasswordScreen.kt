@@ -98,6 +98,8 @@ fun ForgotPasswordScreen(
                 onValueChange = viewModel::onEmailChange,
                 placeholder = "Enter your email",
                 borderColor = BorderPrimary,
+                errorMessage = uiState.emailError,
+                onFocusLost = viewModel::validateEmail,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
