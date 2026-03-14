@@ -10,6 +10,7 @@ import com.example.steptracker.presentation.screens.ActivityWeekScreen
 import com.example.steptracker.presentation.screens.GoalScreen
 import com.example.steptracker.presentation.screens.HomeScreen
 import com.example.steptracker.presentation.components.NavTab
+import com.example.steptracker.presentation.screens.ForgotPasswordScreen
 import com.example.steptracker.presentation.screens.LoginScreen
 import com.example.steptracker.presentation.screens.ProfileScreen
 import com.example.steptracker.presentation.screens.RegisterScreen
@@ -23,6 +24,7 @@ sealed class Screen(val route: String) {
     object ActivityMonth : Screen("activity_month")
     object Goal : Screen("goal")
     object Profile : Screen("profile")
+    object ForgotPassword : Screen("forgot_password")
 }
 
 @Composable
@@ -35,7 +37,7 @@ fun StepTrackerApp() {
         composable(Screen.Login.route) {
             LoginScreen(
                 onCreateAccountClick = { navController.navigate(Screen.Register.route) },
-                onForgotPasswordClick = { /* TODO */ },
+                onForgotPasswordClick = { navController.navigate(Screen.ForgotPassword.route) },
                 onGoogleSignInClick = { /* TODO */ }
             )
         }
@@ -63,6 +65,7 @@ fun StepTrackerApp() {
             ActivityDayScreen(
                 onHomeClick = { navController.navigate(Screen.Home.route) },
                 onWeekClick = { navController.navigate(Screen.ActivityWeek.route) },
+                onMonthClick = { navController.navigate(Screen.ActivityMonth.route) },
                 onProfileClick = { navController.navigate(Screen.Profile.route) },
             )
         }
@@ -80,6 +83,15 @@ fun StepTrackerApp() {
                 onDayClick = { navController.navigate(Screen.Activity.route) },
                 onWeekClick = { navController.navigate(Screen.ActivityWeek.route) },
                 onProfileClick = { navController.navigate(Screen.Profile.route) },
+            )
+        }
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                onBackToSignInClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.ForgotPassword.route) { inclusive = true }
+                    }
+                }
             )
         }
         composable(Screen.Profile.route) {

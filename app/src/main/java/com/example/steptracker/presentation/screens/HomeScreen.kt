@@ -1,16 +1,22 @@
 package com.example.steptracker.presentation.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -23,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +48,8 @@ import com.example.steptracker.presentation.viewmodel.GoalItem
 import com.example.steptracker.presentation.viewmodel.HomeViewModel
 import com.example.steptracker.ui.theme.BgPrimary
 import com.example.steptracker.ui.theme.BgSecondary
+import com.example.steptracker.ui.theme.BtnPrimary
+import com.example.steptracker.ui.theme.SurfaceGreen
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
 
@@ -89,6 +98,16 @@ fun HomeScreen(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 32.sp,
+                )
+            }
+
+            // Weather forecast card
+            item {
+                WeatherForecastCard(
+                    temp = uiState.weatherTemp,
+                    condition = uiState.weatherCondition,
+                    message = uiState.weatherMessage,
+                    isWalkSuitable = uiState.isWalkSuitable,
                 )
             }
 
@@ -165,6 +184,81 @@ fun HomeScreen(
             item {
                 GoalsProgressCard(goals = uiState.goals)
             }
+        }
+    }
+}
+
+@Composable
+private fun WeatherForecastCard(
+    temp: String,
+    condition: String,
+    message: String,
+    isWalkSuitable: Boolean,
+) {
+    Surface(
+        color = BgSecondary,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(top = 20.dp, start = 20.dp, end = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = "Today's Weather",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 28.sp,
+                )
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = temp,
+                        color = TextPrimary,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 36.sp,
+                    )
+                    Text(
+                        text = "  $condition",
+                        color = TextGrey,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        lineHeight = 24.sp,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(if (isWalkSuitable) SurfaceGreen else TextGrey),
+                    )
+                    Text(
+                        text = message,
+                        color = TextGrey,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        lineHeight = 24.sp,
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.Outlined.WbSunny,
+                contentDescription = "Weather icon",
+                tint = BtnPrimary,
+                modifier = Modifier.size(48.dp),
+            )
         }
     }
 }

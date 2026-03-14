@@ -2,6 +2,7 @@ package com.example.steptracker.presentation.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -182,6 +183,7 @@ private fun WeekPeriodTab(
             .padding(8.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(bgColor)
+            .clickable(onClick = onClick)
             .then(
                 if (!isSelected) Modifier.background(Color.Transparent)
                 else Modifier

@@ -14,6 +14,10 @@ data class GoalItem(
 )
 
 data class HomeUiState(
+    val weatherTemp: String = "22°",
+    val weatherCondition: String = "Sunny",
+    val weatherMessage: String = "Perfect day for a walk!",
+    val isWalkSuitable: Boolean = true,
     val stepCount: Int = 8429,
     val stepGoal: Int = 10000,
     val date: String = "Today, 15/02/26",

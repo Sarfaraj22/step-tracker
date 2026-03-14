@@ -1,0 +1,163 @@
+package com.example.steptracker.presentation.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.steptracker.presentation.components.StepTrackerTextField
+import com.example.steptracker.presentation.viewmodel.ForgotPasswordViewModel
+import com.example.steptracker.ui.theme.BgPrimary
+import com.example.steptracker.ui.theme.BorderPrimary
+import com.example.steptracker.ui.theme.BtnPrimary
+import com.example.steptracker.ui.theme.BtnTextPrimary
+import com.example.steptracker.ui.theme.TextGrey
+import com.example.steptracker.ui.theme.TextPrimary
+
+@Composable
+fun ForgotPasswordScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ForgotPasswordViewModel = viewModel(),
+    onBackToSignInClick: () -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BgPrimary),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header
+            Text(
+                text = "Reset Password",
+                style = TextStyle(
+                    color = TextPrimary,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 48.sp,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Enter your email address and we'll send you a link to reset your password",
+                style = TextStyle(
+                    color = TextGrey,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    lineHeight = 24.sp,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Email field
+            StepTrackerTextField(
+                label = "Email Address",
+                value = uiState.email,
+                onValueChange = viewModel::onEmailChange,
+                placeholder = "Enter your email",
+                borderColor = BorderPrimary,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Send Reset link button
+            Button(
+                onClick = viewModel::onSendResetLinkClick,
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BtnPrimary,
+                    contentColor = BtnTextPrimary
+                ),
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(56.dp)
+            ) {
+                Text(
+                    text = "Send Reset link",
+                    style = TextStyle(
+                        color = BtnTextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 28.sp
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Back to Sign In
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { onBackToSignInClick() }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back to Sign In",
+                    tint = BtnPrimary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Back to Sign In",
+                    style = TextStyle(
+                        color = BtnPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        lineHeight = 20.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
+@Composable
+fun ForgotPasswordScreenPreview() {
+    ForgotPasswordScreen()
+}

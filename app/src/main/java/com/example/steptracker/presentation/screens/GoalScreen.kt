@@ -42,6 +42,7 @@ import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.NavTab
 import com.example.steptracker.presentation.viewmodel.GoalUiState
 import com.example.steptracker.presentation.viewmodel.GoalViewModel
+import com.example.steptracker.presentation.viewmodel.RecommendationAccent
 import com.example.steptracker.presentation.viewmodel.RecommendationItem
 import com.example.steptracker.ui.theme.BgPrimary
 import com.example.steptracker.ui.theme.BgSecondary
@@ -49,6 +50,7 @@ import com.example.steptracker.ui.theme.BorderPrimary
 import com.example.steptracker.ui.theme.BtnPrimary
 import com.example.steptracker.ui.theme.BtnTextPrimary
 import com.example.steptracker.ui.theme.SurfaceGreen
+import com.example.steptracker.ui.theme.SurfacePink
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
 
@@ -113,6 +115,10 @@ fun GoalScreen(
 
             item {
                 CustomGoalCard(uiState = uiState)
+            }
+
+            item {
+                PersonalProfileCard(age = uiState.age, weight = uiState.weight)
             }
 
             item {
@@ -289,7 +295,7 @@ private fun CustomGoalCard(uiState: GoalUiState) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Custom Goal",
+                text = "Current Goal",
                 color = TextPrimary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
@@ -336,6 +342,81 @@ private fun CustomGoalCard(uiState: GoalUiState) {
 }
 
 @Composable
+private fun PersonalProfileCard(age: String, weight: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = BgSecondary,
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "Your Profile",
+                color = TextPrimary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 28.sp,
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                ProfileInputField(
+                    label = "Age (years)",
+                    value = age,
+                    modifier = Modifier.weight(1f),
+                )
+                ProfileInputField(
+                    label = "Weight (kg)",
+                    value = weight,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileInputField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = label,
+            color = TextGrey,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(BorderPrimary)
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = value,
+                color = TextGrey,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
+}
+
+@Composable
 private fun RecommendationsCard(recommendations: List<RecommendationItem>) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -367,31 +448,63 @@ private fun RecommendationsCard(recommendations: List<RecommendationItem>) {
 
 @Composable
 private fun RecommendationRow(item: RecommendationItem) {
+    val accentColor = when (item.accent) {
+        RecommendationAccent.YELLOW -> BtnPrimary
+        RecommendationAccent.GREEN -> SurfaceGreen
+        RecommendationAccent.PINK -> SurfacePink
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(32.dp)
-                .clip(RoundedCornerShape(50))
-                .background(if (item.isYellow) BtnPrimary else SurfaceGreen),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = item.title,
-                color = TextPrimary,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(accentColor),
             )
-            Text(
-                text = item.subtitle,
-                color = TextGrey,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = item.title,
+                    color = TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = item.subtitle,
+                    color = TextGrey,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+        }
+
+        if (item.showSetGoalButton) {
+            Spacer(modifier = Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .width(72.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(SurfacePink)
+                    .clickable { /* TODO: set goal action */ },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Set Goal",
+                    color = TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
     }
 }

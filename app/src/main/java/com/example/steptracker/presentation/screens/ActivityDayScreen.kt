@@ -75,6 +75,7 @@ private val BestDayGradient = Brush.verticalGradient(
 fun ActivityDayScreen(
     onHomeClick: () -> Unit = {},
     onWeekClick: () -> Unit = {},
+    onMonthClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     viewModel: ActivityViewModel = viewModel(),
 ) {
@@ -112,7 +113,7 @@ fun ActivityDayScreen(
                 )
             }
 
-            item { PeriodTabSelector(onWeekClick = onWeekClick) }
+            item { PeriodTabSelector(onWeekClick = onWeekClick, onMonthClick = onMonthClick) }
 
             item { StatsRow(uiState) }
 
@@ -132,7 +133,7 @@ fun ActivityDayScreen(
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun PeriodTabSelector(onWeekClick: () -> Unit = {}) {
+private fun PeriodTabSelector(onWeekClick: () -> Unit = {}, onMonthClick: () -> Unit = {}) {
     Surface(
         color = BgSecondary,
         shape = RoundedCornerShape(16.dp),
@@ -145,7 +146,7 @@ private fun PeriodTabSelector(onWeekClick: () -> Unit = {}) {
         ) {
             PeriodTab(label = "Day", isSelected = true, onClick = {}, modifier = Modifier.weight(1f))
             PeriodTab(label = "Week", isSelected = false, onClick = onWeekClick, modifier = Modifier.weight(1f))
-            PeriodTab(label = "Month", isSelected = false, onClick = {}, modifier = Modifier.weight(1f))
+            PeriodTab(label = "Month", isSelected = false, onClick = onMonthClick, modifier = Modifier.weight(1f))
         }
     }
 }
