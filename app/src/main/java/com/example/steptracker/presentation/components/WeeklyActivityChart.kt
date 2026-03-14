@@ -98,12 +98,12 @@ private fun DrawScope.drawWeeklyChart(
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
 ) {
-    val yLabelWidth = 44f
-    val xLabelHeight = 20f
-    val topPadding = 8f
-    val chartLeft = yLabelWidth + 8f
+    val yLabelWidth = 44.dp.toPx()
+    val xLabelHeight = 12.sp.toPx() + 4.dp.toPx()
+    val topPadding = 8.dp.toPx()
+    val chartLeft = yLabelWidth + 4.dp.toPx()
     val chartRight = size.width
-    val chartBottom = size.height - xLabelHeight - 4f
+    val chartBottom = size.height - xLabelHeight - 4.dp.toPx()
     val chartTop = topPadding
     val chartWidth = chartRight - chartLeft
     val chartHeight = chartBottom - chartTop
@@ -151,7 +151,7 @@ private fun DrawScope.drawWeeklyChart(
                 style = labelStyle,
                 topLeft = Offset(
                     x = points[index].x - measured.size.width / 2f,
-                    y = chartBottom + 4f,
+                    y = chartBottom + 4.dp.toPx(),
                 ),
             )
         }

@@ -15,14 +15,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             StepTrackerTheme {
-                //ProfileScreen()
-                //GoalScreen()
-                //ActivityMonthScreen()
-                //ActivityWeekScreen()
-                //ActivityDayScreen()
-                //HomeScreen()
-                //LoginScreen()
-                //ForgotPasswordScreen()
                 StepTrackerApp()
             }
         }

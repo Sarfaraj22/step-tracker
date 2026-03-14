@@ -78,6 +78,10 @@ class ProfileViewModel @Inject constructor(
         _uiState.update { it.copy(locationTrackingEnabled = enabled) }
     }
 
+    fun syncLocationPermission(granted: Boolean) {
+        _uiState.update { it.copy(locationTrackingEnabled = granted) }
+    }
+
     fun signOut() {
         signOutUseCase()
         _uiState.update { it.copy(isSignedOut = true) }

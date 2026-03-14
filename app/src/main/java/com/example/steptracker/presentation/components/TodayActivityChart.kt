@@ -30,7 +30,8 @@ import com.example.steptracker.ui.theme.TextAsh
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
 
-private val barHourLabels = listOf("6", "9", "12", "15", "18", "21")
+// Hours that get an x-axis label when all 24 hourly bars are shown
+private val labelledHours = setOf(6, 9, 12, 15, 18, 21)
 
 @Composable
 fun TodayActivityChart(
@@ -93,9 +94,9 @@ private fun DrawScope.drawBarChart(
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
 ) {
-    val xLabelHeight = 20f
-    val topPadding = 8f
-    val chartBottom = size.height - xLabelHeight - 4f
+    val xLabelHeight = 12.sp.toPx() + 4.dp.toPx()
+    val topPadding = 8.dp.toPx()
+    val chartBottom = size.height - xLabelHeight - 4.dp.toPx()
     val chartTop = topPadding
     val chartHeight = chartBottom - chartTop
     val barCount = hourlySteps.size.coerceAtLeast(1)
@@ -103,7 +104,7 @@ private fun DrawScope.drawBarChart(
 
     val groupWidth = size.width / barCount
     val barWidth = groupWidth * 0.45f
-    val cornerRadius = CornerRadius(6f, 6f)
+    val cornerRadius = CornerRadius(3.dp.toPx(), 3.dp.toPx())
 
     hourlySteps.forEachIndexed { index, steps ->
         val barFraction = steps.toFloat() / maxSteps
@@ -119,9 +120,9 @@ private fun DrawScope.drawBarChart(
             cornerRadius = cornerRadius,
         )
 
-        // X-axis label
-        if (index < barHourLabels.size) {
-            val label = barHourLabels[index]
+        // X-axis label — only shown for the specific hours defined in labelledHours
+        if (index in labelledHours) {
+            val label = index.toString()
             val measured = textMeasurer.measure(label, labelStyle)
             drawText(
                 textMeasurer = textMeasurer,
@@ -129,7 +130,7 @@ private fun DrawScope.drawBarChart(
                 style = labelStyle,
                 topLeft = Offset(
                     x = centerX - measured.size.width / 2f,
-                    y = chartBottom + 4f,
+                    y = chartBottom + 4.dp.toPx(),
                 ),
             )
         }
