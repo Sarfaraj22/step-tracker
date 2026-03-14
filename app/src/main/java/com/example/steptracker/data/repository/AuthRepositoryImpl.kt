@@ -83,6 +83,20 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun signOut() = firebaseAuth.signOut()
 
+    override suspend fun updateProfile(displayName: String): Result<Unit> {
+        return try {
+            val currentUser = firebaseAuth.currentUser
+                ?: return Result.failure(AuthException.Unknown("No authenticated user"))
+            val profileUpdate = userProfileChangeRequest { this.displayName = displayName }
+            currentUser.updateProfile(profileUpdate).await()
+            Result.success(Unit)
+        } catch (e: FirebaseNetworkException) {
+            Result.failure(AuthException.NetworkError())
+        } catch (e: Exception) {
+            Result.failure(AuthException.Unknown(e.message ?: "Profile update failed. Please try again."))
+        }
+    }
+
     override suspend fun deleteAccount(): Result<Unit> {
         return try {
             firebaseAuth.currentUser?.delete()?.await()

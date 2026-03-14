@@ -10,4 +10,5 @@ interface AuthRepository {
     fun getCurrentUser(): User?
     fun signOut()
     suspend fun deleteAccount(): Result<Unit>
+    suspend fun updateProfile(displayName: String): Result<Unit>
 }

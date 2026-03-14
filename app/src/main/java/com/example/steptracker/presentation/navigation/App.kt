@@ -15,6 +15,7 @@ import com.example.steptracker.presentation.screens.ForgotPasswordScreen
 import com.example.steptracker.presentation.screens.GoalScreen
 import com.example.steptracker.presentation.screens.HomeScreen
 import com.example.steptracker.presentation.screens.LoginScreen
+import com.example.steptracker.presentation.screens.EditProfileScreen
 import com.example.steptracker.presentation.screens.ProfileScreen
 import com.example.steptracker.presentation.screens.RegisterScreen
 import com.example.steptracker.presentation.components.NavTab
@@ -33,6 +34,7 @@ sealed class Screen(val route: String) {
     object Goal : Screen("goal")
     object Profile : Screen("profile")
     object ForgotPassword : Screen("forgot_password")
+    object EditProfile : Screen("edit_profile")
 }
 
 @Composable
@@ -150,6 +152,12 @@ fun StepTrackerApp() {
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
+            )
+        }
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                onBack = { navController.popBackStack() },
             )
         }
     }

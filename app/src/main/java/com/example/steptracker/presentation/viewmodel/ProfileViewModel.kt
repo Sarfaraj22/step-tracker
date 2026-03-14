@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.steptracker.domain.model.AuthException
 import com.example.steptracker.domain.use_case.auth.DeleteAccountUseCase
+import com.example.steptracker.domain.use_case.auth.GetCurrentUserUseCase
 import com.example.steptracker.domain.use_case.auth.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +15,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProfileUiState(
-    val userName: String = "John Doe",
-    val userEmail: String = "john.doe@email.com",
+    val userName: String = "",
+    val userEmail: String = "",
     val stepsDistanceEnabled: Boolean = true,
     val dailyReminderEnabled: Boolean = true,
     val goalReachedNotificationEnabled: Boolean = true,
@@ -33,10 +34,25 @@ data class ProfileUiState(
 class ProfileViewModel @Inject constructor(
     private val signOutUseCase: SignOutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+    init {
+        refreshUser()
+    }
+
+    fun refreshUser() {
+        val user = getCurrentUserUseCase()
+        _uiState.update {
+            it.copy(
+                userName = user?.displayName.orEmpty(),
+                userEmail = user?.email.orEmpty(),
+            )
+        }
+    }
 
     fun toggleStepsDistance(enabled: Boolean) {
         _uiState.update { it.copy(stepsDistanceEnabled = enabled) }

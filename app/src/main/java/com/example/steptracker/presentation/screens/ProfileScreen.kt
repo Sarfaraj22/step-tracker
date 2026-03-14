@@ -41,10 +41,14 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -72,9 +76,21 @@ fun ProfileScreen(
     onTabSelected: (NavTab) -> Unit = {},
     onSignOut: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshUser()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(uiState.isSignedOut) {
         if (uiState.isSignedOut) onSignOut()
@@ -154,6 +170,7 @@ fun ProfileScreen(
                 UserCard(
                     name = uiState.userName,
                     email = uiState.userEmail,
+                    onEditClick = onEditProfileClick,
                 )
             }
 
@@ -302,6 +319,7 @@ fun ProfileScreen(
 private fun UserCard(
     name: String,
     email: String,
+    onEditClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -309,6 +327,7 @@ private fun UserCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(BgSecondary)
+            .clickable(onClick = onEditClick)
             .padding(24.dp),
     ) {
         Row(
