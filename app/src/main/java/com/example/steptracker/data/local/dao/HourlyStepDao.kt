@@ -17,4 +17,7 @@ interface HourlyStepDao {
 
     @Query("SELECT COUNT(*) FROM hourly_steps WHERE date = :date")
     suspend fun countForDate(date: String): Int
+
+    @Query("DELETE FROM hourly_steps")
+    suspend fun clearAll()
 }

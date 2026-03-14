@@ -6,6 +6,7 @@ import com.example.steptracker.domain.model.AuthException
 import com.example.steptracker.domain.use_case.auth.DeleteAccountUseCase
 import com.example.steptracker.domain.use_case.auth.GetCurrentUserUseCase
 import com.example.steptracker.domain.use_case.auth.SignOutUseCase
+import com.example.steptracker.domain.use_case.steps.ResetUserStepDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,8 @@ data class ProfileUiState(
     val isAccountDeleted: Boolean = false,
     val isDeletingAccount: Boolean = false,
     val deleteAccountError: String? = null,
+    val isResettingData: Boolean = false,
+    val resetDataMessage: String? = null,
 )
 
 @HiltViewModel
@@ -35,6 +38,7 @@ class ProfileViewModel @Inject constructor(
     private val signOutUseCase: SignOutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val resetUserStepDataUseCase: ResetUserStepDataUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -119,5 +123,37 @@ class ProfileViewModel @Inject constructor(
 
     fun clearDeleteAccountError() {
         _uiState.update { it.copy(deleteAccountError = null) }
+    }
+
+    fun resetAllData() {
+        _uiState.update {
+            it.copy(
+                isResettingData = true,
+                resetDataMessage = null,
+            )
+        }
+        viewModelScope.launch {
+            resetUserStepDataUseCase()
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isResettingData = false,
+                            resetDataMessage = "All activity data has been reset.",
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isResettingData = false,
+                            resetDataMessage = e.message ?: "Failed to reset data. Please try again.",
+                        )
+                    }
+                }
+        }
+    }
+
+    fun clearResetDataMessage() {
+        _uiState.update { it.copy(resetDataMessage = null) }
     }
 }

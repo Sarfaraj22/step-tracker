@@ -43,7 +43,8 @@ class StepCounterDataSource @Inject constructor(
     val todayStepCount: Flow<Int> = callbackFlow {
         val sensor = stepCounterSensor
         if (sensor == null) {
-            close(UnsupportedOperationException("Step counter sensor not available on this device."))
+            trySend(0)
+            close()
             return@callbackFlow
         }
 

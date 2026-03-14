@@ -1,0 +1,158 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "46ac10fb80399cb76db21fbff4f9171a",
+    "entities": [
+      {
+        "tableName": "step_records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateEpochDay` INTEGER NOT NULL, `stepCount` INTEGER NOT NULL, `distanceMeters` REAL NOT NULL, `caloriesBurned` INTEGER NOT NULL, `activeMinutes` INTEGER NOT NULL, `goalSteps` INTEGER NOT NULL, `hourlyStepsCsv` TEXT NOT NULL, PRIMARY KEY(`dateEpochDay`))",
+        "fields": [
+          {
+            "fieldPath": "dateEpochDay",
+            "columnName": "dateEpochDay",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepCount",
+            "columnName": "stepCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanceMeters",
+            "columnName": "distanceMeters",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caloriesBurned",
+            "columnName": "caloriesBurned",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeMinutes",
+            "columnName": "activeMinutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "goalSteps",
+            "columnName": "goalSteps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hourlyStepsCsv",
+            "columnName": "hourlyStepsCsv",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateEpochDay"
+          ]
+        }
+      },
+      {
+        "tableName": "daily_activity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `stepCount` INTEGER NOT NULL, `stepGoal` INTEGER NOT NULL, `distanceKm` REAL NOT NULL, `caloriesBurned` INTEGER NOT NULL, `activeMinutes` INTEGER NOT NULL, `avgHeartRate` INTEGER NOT NULL, `weeklyDistanceKm` REAL NOT NULL, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepCount",
+            "columnName": "stepCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepGoal",
+            "columnName": "stepGoal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanceKm",
+            "columnName": "distanceKm",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "caloriesBurned",
+            "columnName": "caloriesBurned",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeMinutes",
+            "columnName": "activeMinutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avgHeartRate",
+            "columnName": "avgHeartRate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weeklyDistanceKm",
+            "columnName": "weeklyDistanceKm",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "hourly_steps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `hour` INTEGER NOT NULL, `stepCount` INTEGER NOT NULL, PRIMARY KEY(`date`, `hour`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hour",
+            "columnName": "hour",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepCount",
+            "columnName": "stepCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date",
+            "hour"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '46ac10fb80399cb76db21fbff4f9171a')"
+    ]
+  }
+}

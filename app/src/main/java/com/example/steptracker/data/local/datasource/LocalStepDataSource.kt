@@ -2,6 +2,7 @@ package com.example.steptracker.data.local.datasource
 
 import com.example.steptracker.data.local.dao.DailyActivityDao
 import com.example.steptracker.data.local.dao.HourlyStepDao
+import com.example.steptracker.data.local.entity.DailyActivityEntity
 import com.example.steptracker.domain.model.DailyActivity
 import java.time.LocalDate
 import javax.inject.Inject
@@ -35,5 +36,30 @@ class LocalStepDataSource @Inject constructor(
             hourlySteps = hourlySteps,
             weeklyDistanceKm = entity?.weeklyDistanceKm ?: 0f,
         )
+    }
+
+    suspend fun updateDailyGoal(date: LocalDate, stepGoal: Int) {
+        val dateStr = date.toString()
+        val existing = dailyActivityDao.getByDate(dateStr)
+        val updated = if (existing != null) {
+            existing.copy(stepGoal = stepGoal)
+        } else {
+            DailyActivityEntity(
+                date = dateStr,
+                stepCount = 0,
+                stepGoal = stepGoal,
+                distanceKm = 0f,
+                caloriesBurned = 0,
+                activeMinutes = 0,
+                avgHeartRate = 0,
+                weeklyDistanceKm = 0f,
+            )
+        }
+        dailyActivityDao.insert(updated)
+    }
+
+    suspend fun clearAll() {
+        dailyActivityDao.clearAll()
+        hourlyStepDao.clearAll()
     }
 }

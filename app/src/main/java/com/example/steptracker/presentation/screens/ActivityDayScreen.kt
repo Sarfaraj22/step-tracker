@@ -49,7 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.NavTab
 import com.example.steptracker.presentation.viewmodel.ActivityDayUiState
@@ -77,7 +77,7 @@ fun ActivityDayScreen(
     onWeekClick: () -> Unit = {},
     onMonthClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    viewModel: ActivityViewModel = viewModel(),
+    viewModel: ActivityViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

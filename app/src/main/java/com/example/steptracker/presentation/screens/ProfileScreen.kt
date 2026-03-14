@@ -80,6 +80,9 @@ import com.example.steptracker.ui.theme.TextDarkGrey
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
 
+private const val PRIVACY_POLICY_URL: String =
+    "https://example.com/step-tracker-privacy-policy"
+
 @Composable
 fun ProfileScreen(
     onTabSelected: (NavTab) -> Unit = {},
@@ -310,12 +313,21 @@ fun ProfileScreen(
                         title = "Reset all data",
                         subtitle = "Clear activity history",
                         showDivider = true,
+                        onClick = { viewModel.resetAllData() },
+                        enabled = !uiState.isResettingData,
                     )
                     ActionRow(
                         icon = Icons.Outlined.Policy,
                         title = "Privacy policy",
                         subtitle = "How we protect your data",
                         showDivider = false,
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(PRIVACY_POLICY_URL),
+                            )
+                            context.startActivity(intent)
+                        },
                     )
                 }
             }
@@ -336,6 +348,20 @@ fun ProfileScreen(
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            uiState.resetDataMessage?.let { message ->
+                item {
+                    Text(
+                        text = message,
+                        color = SurfaceGreen,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.clearResetDataMessage() },
                     )
                 }
             }
@@ -618,8 +644,14 @@ private fun ActionRow(
     subtitle: String,
     showDivider: Boolean,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    enabled: Boolean = true,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

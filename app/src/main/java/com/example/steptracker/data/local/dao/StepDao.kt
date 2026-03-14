@@ -22,4 +22,7 @@ interface StepDao {
 
     @Upsert
     suspend fun upsert(entity: StepRecordEntity)
+
+    @Query("DELETE FROM step_records")
+    suspend fun clearAll()
 }

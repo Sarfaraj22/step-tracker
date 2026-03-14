@@ -15,4 +15,6 @@ interface StepRepository {
     suspend fun upsertHourlySnapshot(dateEpochDay: Long, hour: Int, steps: Int): Result<Unit>
     suspend fun getDailyActivity(date: LocalDate): DailyActivity
     suspend fun getWeeklySteps(endDate: LocalDate): List<Int>
+    suspend fun updateDailyGoal(date: LocalDate, stepGoal: Int): Result<Unit>
+    suspend fun resetAllData(): Result<Unit>
 }

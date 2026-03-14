@@ -68,7 +68,7 @@ class StepRepositoryImpl @Inject constructor(
                 caloriesBurned = 0,
                 activeMinutes = 0,
                 goalSteps = 0,
-                hourlyStepsCsv = updatedHourly.joinToString(",")
+                hourlyStepsCsv = updatedHourly.joinToString(","),
             )
 
         stepDao.upsert(entity)
@@ -90,6 +90,15 @@ class StepRepositoryImpl @Inject constructor(
         return steps
     }
 
+    override suspend fun updateDailyGoal(date: LocalDate, stepGoal: Int): Result<Unit> =
+        runCatching { local.updateDailyGoal(date, stepGoal) }
+
+    override suspend fun resetAllData(): Result<Unit> =
+        runCatching {
+            stepDao.clearAll()
+            local.clearAll()
+        }
+
     // --- Mappers ---
 
     private fun StepRecord.toEntity(): StepRecordEntity = StepRecordEntity(
@@ -99,7 +108,7 @@ class StepRepositoryImpl @Inject constructor(
         caloriesBurned = caloriesBurned,
         activeMinutes = activeMinutes,
         goalSteps = goalSteps,
-        hourlyStepsCsv = hourlySteps.joinToString(",")
+        hourlyStepsCsv = hourlySteps.joinToString(","),
     )
 
     private fun StepRecordEntity.toDomain(): StepRecord = StepRecord(
@@ -109,7 +118,7 @@ class StepRepositoryImpl @Inject constructor(
         caloriesBurned = caloriesBurned,
         activeMinutes = activeMinutes,
         goalSteps = goalSteps,
-        hourlySteps = parseHourlySteps()
+        hourlySteps = parseHourlySteps(),
     )
 
     private fun StepRecordEntity.parseHourlySteps(): List<Int> {

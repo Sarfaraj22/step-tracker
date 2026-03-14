@@ -16,12 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,7 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.steptracker.presentation.components.StepTrackerTextField
 import androidx.compose.foundation.Canvas
 import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.NavTab
@@ -59,9 +66,13 @@ fun GoalScreen(
     onHomeClick: () -> Unit = {},
     onActivityClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    viewModel: GoalViewModel = viewModel(),
+    viewModel: GoalViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showEditDialog by remember { mutableStateOf(false) }
+    var customGoalText by remember(uiState.dailyGoal) {
+        mutableStateOf(uiState.dailyGoal.toString())
+    }
 
     Scaffold(
         containerColor = BgPrimary,
@@ -114,7 +125,10 @@ fun GoalScreen(
             }
 
             item {
-                CustomGoalCard(uiState = uiState)
+                CustomGoalCard(
+                    uiState = uiState,
+                    onEditClick = { showEditDialog = true },
+                )
             }
 
             item {
@@ -122,8 +136,29 @@ fun GoalScreen(
             }
 
             item {
-                RecommendationsCard(recommendations = uiState.recommendations)
+                RecommendationsCard(
+                    recommendations = uiState.recommendations,
+                    onSetGoalClick = { steps ->
+                        viewModel.applyRecommendedGoal(steps)
+                    },
+                )
             }
+        }
+
+        if (showEditDialog) {
+            EditGoalDialog(
+                currentGoal = uiState.dailyGoal,
+                initialText = customGoalText,
+                onTextChange = { customGoalText = it },
+                onConfirm = {
+                    val value = customGoalText.toIntOrNull()
+                    if (value != null && value > 0) {
+                        viewModel.updateDailyGoal(value)
+                        showEditDialog = false
+                    }
+                },
+                onDismiss = { showEditDialog = false },
+            )
         }
     }
 }
@@ -282,7 +317,10 @@ private fun QuickPresetsSection(
 }
 
 @Composable
-private fun CustomGoalCard(uiState: GoalUiState) {
+private fun CustomGoalCard(
+    uiState: GoalUiState,
+    onEditClick: () -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = BgSecondary,
@@ -334,7 +372,7 @@ private fun CustomGoalCard(uiState: GoalUiState) {
                     color = BtnPrimary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable { /* TODO: open edit dialog */ },
+                    modifier = Modifier.clickable(onClick = onEditClick),
                 )
             }
         }
@@ -417,7 +455,10 @@ private fun ProfileInputField(
 }
 
 @Composable
-private fun RecommendationsCard(recommendations: List<RecommendationItem>) {
+private fun RecommendationsCard(
+    recommendations: List<RecommendationItem>,
+    onSetGoalClick: (Int) -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = BgSecondary,
@@ -439,7 +480,10 @@ private fun RecommendationsCard(recommendations: List<RecommendationItem>) {
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 recommendations.forEach { item ->
-                    RecommendationRow(item = item)
+                    RecommendationRow(
+                        item = item,
+                        onSetGoalClick = onSetGoalClick,
+                    )
                 }
             }
         }
@@ -447,7 +491,10 @@ private fun RecommendationsCard(recommendations: List<RecommendationItem>) {
 }
 
 @Composable
-private fun RecommendationRow(item: RecommendationItem) {
+private fun RecommendationRow(
+    item: RecommendationItem,
+    onSetGoalClick: (Int) -> Unit,
+) {
     val accentColor = when (item.accent) {
         RecommendationAccent.YELLOW -> BtnPrimary
         RecommendationAccent.GREEN -> SurfaceGreen
@@ -487,7 +534,7 @@ private fun RecommendationRow(item: RecommendationItem) {
             }
         }
 
-        if (item.showSetGoalButton) {
+        if (item.showSetGoalButton && item.suggestedGoal != null) {
             Spacer(modifier = Modifier.width(12.dp))
             Box(
                 modifier = Modifier
@@ -495,7 +542,7 @@ private fun RecommendationRow(item: RecommendationItem) {
                     .height(32.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(SurfacePink)
-                    .clickable { /* TODO: set goal action */ },
+                    .clickable { onSetGoalClick(item.suggestedGoal) },
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -507,4 +554,51 @@ private fun RecommendationRow(item: RecommendationItem) {
             }
         }
     }
+}
+
+@Composable
+private fun EditGoalDialog(
+    currentGoal: Int,
+    initialText: String,
+    onTextChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = BgSecondary,
+        title = {
+            Text(
+                text = "Edit Daily Goal",
+                color = TextPrimary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Set a new daily step target.",
+                    color = TextGrey,
+                    fontSize = 14.sp,
+                )
+                StepTrackerTextField(
+                    value = initialText,
+                    onValueChange = onTextChange,
+                    label = "Daily goal (steps)",
+                    placeholder = "e.g. 10000",
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text(text = "Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancel")
+            }
+        },
+    )
 }

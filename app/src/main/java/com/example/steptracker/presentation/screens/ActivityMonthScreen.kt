@@ -50,7 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.NavTab
 import com.example.steptracker.presentation.viewmodel.ActivityMonthUiState
@@ -78,7 +78,7 @@ fun ActivityMonthScreen(
     onDayClick: () -> Unit = {},
     onWeekClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
-    viewModel: ActivityViewModel = viewModel(),
+    viewModel: ActivityViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.monthUiState.collectAsState()
 
@@ -398,19 +398,21 @@ private fun DrawScope.drawMonthStepHistoryChart(
         )
     }
 
-    // X-axis labels at specific bar positions
+    // X-axis labels at specific bar positions — guard against barIndex out of range
+    // and labels positioned past the canvas right edge, which causes negative drawText constraints.
     monthXLabelPositions.forEach { (barIndex, label) ->
+        if (barIndex >= barCount) return@forEach
         val centerX = chartLeft + groupWidth * barIndex + groupWidth / 2f
         val measured = textMeasurer.measure(label, axisStyle)
-        drawText(
-            textMeasurer = textMeasurer,
-            text = label,
-            style = axisStyle,
-            topLeft = Offset(
-                x = centerX - measured.size.width / 2f,
-                y = chartBottom + 6f,
-            ),
-        )
+        val labelX = centerX - measured.size.width / 2f
+        if (labelX < size.width) {
+            drawText(
+                textMeasurer = textMeasurer,
+                text = label,
+                style = axisStyle,
+                topLeft = Offset(x = labelX, y = chartBottom + 6f),
+            )
+        }
     }
 }
 

@@ -17,4 +17,7 @@ interface DailyActivityDao {
 
     @Query("SELECT COUNT(*) FROM daily_activity")
     suspend fun count(): Int
+
+    @Query("DELETE FROM daily_activity")
+    suspend fun clearAll()
 }

@@ -62,8 +62,10 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            seeder.seedRoomIfEmpty()
-            seeder.seedFirestoreIfEmpty()
+            try {
+                seeder.seedRoomIfEmpty()
+                seeder.seedFirestoreIfEmpty()
+            } catch (_: Exception) { }
             loadActivity(today)
         }
     }
@@ -109,47 +111,51 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadActivity(date: LocalDate) {
         _uiState.update { it.copy(isLoading = true) }
 
-        val activity = getDailyActivity(date)
-        val weeklySteps = getWeeklySteps(date)
+        try {
+            val activity = getDailyActivity(date)
+            val weeklySteps = getWeeklySteps(date)
 
-        val weeklyDistanceGoal = 35f
-        val activeMinutesGoal = 60f
+            val weeklyDistanceGoal = 35f
+            val activeMinutesGoal = 60f
 
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                stepCount = activity.stepCount,
-                stepGoal = activity.stepGoal,
-                date = formatDate(date),
-                distanceKm = activity.distanceKm,
-                caloriesBurned = activity.caloriesBurned,
-                activeMinutes = activity.activeMinutes,
-                avgHeartRate = activity.avgHeartRate,
-                weeklySteps = weeklySteps,
-                todayHourlySteps = activity.hourlySteps,
-                goals = listOf(
-                    GoalItem(
-                        label = "Daily Steps",
-                        current = activity.stepCount.toFloat(),
-                        target = activity.stepGoal.toFloat(),
-                        unit = "steps",
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    stepCount = activity.stepCount,
+                    stepGoal = activity.stepGoal,
+                    date = formatDate(date),
+                    distanceKm = activity.distanceKm,
+                    caloriesBurned = activity.caloriesBurned,
+                    activeMinutes = activity.activeMinutes,
+                    avgHeartRate = activity.avgHeartRate,
+                    weeklySteps = weeklySteps,
+                    todayHourlySteps = activity.hourlySteps,
+                    goals = listOf(
+                        GoalItem(
+                            label = "Daily Steps",
+                            current = activity.stepCount.toFloat(),
+                            target = activity.stepGoal.toFloat(),
+                            unit = "steps",
+                        ),
+                        GoalItem(
+                            label = "Weekly Distance",
+                            current = activity.weeklyDistanceKm,
+                            target = weeklyDistanceGoal,
+                            unit = "km",
+                            isGreen = true,
+                        ),
+                        GoalItem(
+                            label = "Active Minutes",
+                            current = activity.activeMinutes.toFloat(),
+                            target = activeMinutesGoal,
+                            unit = "min",
+                        ),
                     ),
-                    GoalItem(
-                        label = "Weekly Distance",
-                        current = activity.weeklyDistanceKm,
-                        target = weeklyDistanceGoal,
-                        unit = "km",
-                        isGreen = true,
-                    ),
-                    GoalItem(
-                        label = "Active Minutes",
-                        current = activity.activeMinutes.toFloat(),
-                        target = activeMinutesGoal,
-                        unit = "min",
-                    ),
-                ),
-                isAtLatestDay = !date.isBefore(today),
-            )
+                    isAtLatestDay = !date.isBefore(today),
+                )
+            }
+        } catch (_: Exception) {
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
