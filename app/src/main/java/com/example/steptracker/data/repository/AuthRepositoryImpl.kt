@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.FirebaseNetworkException
 import kotlinx.coroutines.tasks.await
@@ -56,6 +57,20 @@ class AuthRepositoryImpl @Inject constructor(
             Result.failure(AuthException.NetworkError())
         } catch (e: Exception) {
             Result.failure(AuthException.Unknown(e.message ?: "Registration failed. Please try again."))
+        }
+    }
+
+    override suspend fun signInWithGoogle(idToken: String): Result<User> {
+        return try {
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            val result = firebaseAuth.signInWithCredential(credential).await()
+            val user = result.user
+                ?: return Result.failure(AuthException.Unknown("Google sign-in succeeded but user is null"))
+            Result.success(user.toDomain())
+        } catch (e: FirebaseNetworkException) {
+            Result.failure(AuthException.NetworkError())
+        } catch (e: Exception) {
+            Result.failure(AuthException.Unknown(e.message ?: "Google sign-in failed. Please try again."))
         }
     }
 

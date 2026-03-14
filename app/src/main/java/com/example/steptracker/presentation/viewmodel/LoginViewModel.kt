@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.steptracker.domain.model.AuthException
 import com.example.steptracker.domain.use_case.auth.LoginWithEmailUseCase
+import com.example.steptracker.domain.use_case.auth.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginWithEmail: LoginWithEmailUseCase
+    private val loginWithEmail: LoginWithEmailUseCase,
+    private val signInWithGoogle: SignInWithGoogleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -101,6 +103,30 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(emailError = emailError, passwordError = passwordError) }
 
         return emailError == null && passwordError == null
+    }
+
+    fun onGoogleSignInResult(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = signInWithGoogle(idToken)
+            result.fold(
+                onSuccess = { _uiState.update { it.copy(isLoading = false, isSuccess = true) } },
+                onFailure = { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = e.message ?: "Google sign-in failed. Please try again."
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onGoogleSignInError(message: String?) {
+        _uiState.update {
+            it.copy(errorMessage = message ?: "Google sign-in failed. Please try again.")
+        }
     }
 
     fun onErrorDismissed() {

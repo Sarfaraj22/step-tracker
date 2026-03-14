@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,9 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,7 +42,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.steptracker.R
 import com.example.steptracker.presentation.components.GoogleSignUpButton
 import com.example.steptracker.presentation.components.OrDivider
 import com.example.steptracker.presentation.components.StepTrackerTextField
@@ -50,21 +58,26 @@ import com.example.steptracker.ui.theme.BtnPrimary
 import com.example.steptracker.ui.theme.BtnTextPrimary
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
     onCreateAccountClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onGoogleSignInClick: () -> Unit = {}
+    onForgotPasswordClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BgPrimary),
+            .background(BgPrimary)
+            .safeDrawingPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -209,7 +222,29 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            GoogleSignUpButton(onClick = onGoogleSignInClick)
+            GoogleSignUpButton(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            val credentialManager = CredentialManager.create(context)
+                            val googleSignInOption = GetSignInWithGoogleOption.Builder(
+                                context.getString(R.string.default_web_client_id)
+                            ).build()
+                            val request = GetCredentialRequest.Builder()
+                                .addCredentialOption(googleSignInOption)
+                                .build()
+                            val result = credentialManager.getCredential(context, request)
+                            val googleIdTokenCredential =
+                                GoogleIdTokenCredential.createFrom(result.credential.data)
+                            viewModel.onGoogleSignInResult(googleIdTokenCredential.idToken)
+                        } catch (e: GetCredentialCancellationException) {
+                            // User dismissed the picker — no action needed
+                        } catch (e: GetCredentialException) {
+                            viewModel.onGoogleSignInError(e.message)
+                        }
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 

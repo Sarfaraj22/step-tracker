@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.steptracker.domain.model.AuthException
 import com.example.steptracker.domain.use_case.auth.RegisterWithEmailUseCase
+import com.example.steptracker.domain.use_case.auth.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +34,8 @@ data class RegisterUiState(
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerWithEmail: RegisterWithEmailUseCase
+    private val registerWithEmail: RegisterWithEmailUseCase,
+    private val signInWithGoogle: SignInWithGoogleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegisterUiState())
@@ -183,6 +185,30 @@ class RegisterViewModel @Inject constructor(
         }
 
         return isValid
+    }
+
+    fun onGoogleSignInResult(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = signInWithGoogle(idToken)
+            result.fold(
+                onSuccess = { _uiState.update { it.copy(isLoading = false, isSuccess = true) } },
+                onFailure = { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = e.message ?: "Google sign-up failed. Please try again."
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun onGoogleSignInError(message: String?) {
+        _uiState.update {
+            it.copy(errorMessage = message ?: "Google sign-up failed. Please try again.")
+        }
     }
 
     fun onErrorDismissed() {

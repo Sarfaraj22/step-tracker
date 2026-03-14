@@ -60,8 +60,7 @@ fun StepTrackerApp() {
             LoginScreen(
                 viewModel = viewModel,
                 onCreateAccountClick = { navController.navigate(Screen.Register.route) },
-                onForgotPasswordClick = { navController.navigate(Screen.ForgotPassword.route) },
-                onGoogleSignInClick = { /* Google Sign-In — future implementation */ }
+                onForgotPasswordClick = { navController.navigate(Screen.ForgotPassword.route) }
             )
         }
         composable(Screen.Register.route) {
@@ -78,8 +77,7 @@ fun StepTrackerApp() {
 
             RegisterScreen(
                 viewModel = viewModel,
-                onSignInClick = { navController.popBackStack() },
-                onGoogleSignUpClick = { /* Google Sign-Up — future implementation */ }
+                onSignInClick = { navController.popBackStack() }
             )
         }
         composable(Screen.Home.route) {
