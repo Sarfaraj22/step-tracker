@@ -1,6 +1,7 @@
 package com.example.steptracker.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.LocationOn
@@ -35,6 +37,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,7 +48,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.steptracker.presentation.components.BottomNavBar
 import com.example.steptracker.presentation.components.NavTab
 import com.example.steptracker.presentation.viewmodel.ProfileViewModel
@@ -54,6 +57,7 @@ import com.example.steptracker.ui.theme.BgSecondary
 import com.example.steptracker.ui.theme.BorderPrimary
 import com.example.steptracker.ui.theme.BtnPrimary
 import com.example.steptracker.ui.theme.SurfaceGreen
+import com.example.steptracker.ui.theme.SurfacePink
 import com.example.steptracker.ui.theme.TextDarkGrey
 import com.example.steptracker.ui.theme.TextGrey
 import com.example.steptracker.ui.theme.TextPrimary
@@ -61,9 +65,16 @@ import com.example.steptracker.ui.theme.TextPrimary
 @Composable
 fun ProfileScreen(
     onTabSelected: (NavTab) -> Unit = {},
-    viewModel: ProfileViewModel = viewModel(),
+    onSignOut: () -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.isSignedOut) {
+        if (uiState.isSignedOut) {
+            onSignOut()
+        }
+    }
 
     Scaffold(
         containerColor = BgPrimary,
@@ -210,6 +221,11 @@ fun ProfileScreen(
                         showDivider = false,
                     )
                 }
+            }
+
+            // Sign Out Section
+            item {
+                SignOutCard(onSignOut = { viewModel.signOut() })
             }
         }
     }
@@ -562,4 +578,39 @@ private fun ProfileSwitch(
             uncheckedBorderColor = Color.Transparent,
         ),
     )
+}
+
+@Composable
+private fun SignOutCard(
+    onSignOut: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(BgSecondary)
+            .clickable(onClick = onSignOut)
+            .padding(20.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.Logout,
+                contentDescription = "Sign out",
+                tint = SurfacePink,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = "Sign Out",
+                color = SurfacePink,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                lineHeight = 24.sp,
+            )
+        }
+    }
 }

@@ -1,10 +1,13 @@
 package com.example.steptracker.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.steptracker.domain.use_case.auth.SignOutUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 data class ProfileUiState(
     val userName: String = "John Doe",
@@ -15,9 +18,13 @@ data class ProfileUiState(
     val inactivityNudgeEnabled: Boolean = false,
     val biometricAuthEnabled: Boolean = false,
     val locationTrackingEnabled: Boolean = true,
+    val isSignedOut: Boolean = false,
 )
 
-class ProfileViewModel : ViewModel() {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val signOutUseCase: SignOutUseCase,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -44,5 +51,10 @@ class ProfileViewModel : ViewModel() {
 
     fun toggleLocationTracking(enabled: Boolean) {
         _uiState.update { it.copy(locationTrackingEnabled = enabled) }
+    }
+
+    fun signOut() {
+        signOutUseCase()
+        _uiState.update { it.copy(isSignedOut = true) }
     }
 }
